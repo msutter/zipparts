@@ -7,7 +7,7 @@ RootModule = 'ZipParts.psm1'
 ModuleVersion = '1.0'
 
 # ID used to uniquely identify this module
-GUID = 'e7dd7b56-7654-c8787-e980-aa7664836a76'
+GUID = '1bdad8e2-a359-49d8-9412-ffafdeaff9a7'
 
 # Author of this module
 Author = 'Marc Sutter'
