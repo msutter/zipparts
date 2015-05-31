@@ -33,7 +33,7 @@ function ConvertTo-ZipParts
     [string]$ZipExtractBasePath = '.\',
 
     [Parameter(Mandatory=$False)]
-    [int]$MaxOutputSegmentSize
+    [int64]$MaxOutputSegmentSize
   )
 
   $ErrorActionPreference = "Stop"
