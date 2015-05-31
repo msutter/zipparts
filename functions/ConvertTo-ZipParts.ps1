@@ -1,33 +1,33 @@
-function New-ZipPartsFromFile
+function ConvertTo-ZipParts
 {
   <#
   .Synopsis
-  Generates a part zips of the given file
+  Generates part zips from the given file
   .Description
-  Generates a part zips of the given file
-  .Parameter FilePath
-  The Path of the File to be zipped (in multiple parts)
+  Generates part zips from the given file
+  .Parameter SourcePath
+  The Path of the File/Folder to be zipped (in multiple parts)
   .Parameter OutputPath
   The Output Directory of the generated zip file(s)
   .Parameter MaxOutputSegmentSize
   The maximum size of an output segment, when saving a split Zip file.
   .Example
-  New-ZipPartsFromFile -FilePath .\Git-1.9.5-preview20141217.exe -Verbose -MaxOutputSegmentSize 5242880
+  New-ZipPartsFromFile -SourcePath .\Git-1.9.5-preview20141217.exe -Verbose -MaxOutputSegmentSize 5242880
   .Example
-  $result = New-ZipPartsFromFile -FilePath .\Git-1.9.5-preview20141217.exe -Verbose -MaxOutputSegmentSize 5242880
+  $result = New-ZipPartsFromFile -SourcePath .\Git-1.9.5-preview20141217.exe -Verbose -MaxOutputSegmentSize 5242880
   $result.ZipPartFilesCount
   4
   #>
 
   Param(
     [Parameter(Mandatory=$True)]
-    [string]$FilePath,
+    [string]$SourcePath,
 
     [Parameter(Mandatory=$False)]
-    [string]$OutputPath = (Get-Item $FilePath).BaseName,
+    [string]$OutputPath = 'ZipParts',
 
     [Parameter(Mandatory=$False)]
-    [string]$ZipOutBaseName = (Get-Item $FilePath).BaseName,
+    [string]$ZipOutBaseName = (Get-Item $SourcePath).BaseName,
 
     [Parameter(Mandatory=$False)]
     [string]$ZipExtractBasePath = '.\',
@@ -40,10 +40,10 @@ function New-ZipPartsFromFile
 
   Write-Verbose "PWD: ${PWD}"
 
-  if ([System.IO.Path]::IsPathRooted($FilePath)) {
-    $AbsFilePath = $FilePath
+  if ([System.IO.Path]::IsPathRooted($SourcePath)) {
+    $AbsSourcePath = $SourcePath
   } else {
-    $AbsFilePath = (Join-Path $PWD $FilePath) -replace '\\\.\\', '\'
+    $AbsSourcePath = (Join-Path $PWD $SourcePath) -replace '\\\.\\', '\'
   }
 
   if ([System.IO.Path]::IsPathRooted($OutputPath)) {
@@ -70,14 +70,18 @@ function New-ZipPartsFromFile
 
   Write-Verbose "AbsOutputPath: ${AbsOutputPath}"
   Write-Verbose "ZipOutBaseName: ${ZipOutBaseName}"
-  Write-Verbose "AbsFilePath: ${AbsFilePath}"
+  Write-Verbose "AbsSourcePath: ${AbsSourcePath}"
 
   # Proceed the zipping
   [System.Reflection.Assembly]::UnsafeLoadFrom($DotNetZipDllPath) | Write-Verbose
   $zipfile = new-object Ionic.Zip.ZipFile
   $zipfile.UseZip64WhenSaving = [Ionic.Zip.Zip64Option]::Always
   $zipfile.MaxOutputSegmentSize = $MaxOutputSegmentSize
-  $zipfile.AddFile($AbsFilePath, $ZipExtractBasePath ) | Write-Verbose
+  if (Test-Path $AbsSourcePath -pathType container) {
+    $zipfile.AddDirectory($AbsSourcePath, $ZipExtractBasePath ) | Write-Verbose
+  } else {
+    $zipfile.AddFile($AbsSourcePath, $ZipExtractBasePath ) | Write-Verbose
+  }
   $zipfile.Save("${AbsOutputPath}\${ZipOutBaseName}.zip") | Write-Verbose
   $zipfile.Dispose() | Out-Null
 
@@ -96,7 +100,7 @@ function New-ZipPartsFromFile
   Write-Verbose "Generated ${ZipPartFilesCount} part zip files"
 
   # Zipped Filename
-  $ZippedFile = (Get-Item $FilePath).name
+  $ZippedFile = (Get-Item $SourcePath).name
 
   # Compute a result object
   $ZipResultProperties = @{
