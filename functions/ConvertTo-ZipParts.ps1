@@ -33,7 +33,7 @@ function ConvertTo-ZipParts
     [string]$ZipExtractBasePath = '.\',
 
     [Parameter(Mandatory=$False)]
-    [int]$MaxOutputSegmentSize = 524288000 #500M
+    [int]$MaxOutputSegmentSize
   )
 
   $ErrorActionPreference = "Stop"
@@ -76,7 +76,9 @@ function ConvertTo-ZipParts
   [System.Reflection.Assembly]::UnsafeLoadFrom($DotNetZipDllPath) | Write-Verbose
   $zipfile = new-object Ionic.Zip.ZipFile
   $zipfile.UseZip64WhenSaving = [Ionic.Zip.Zip64Option]::Always
-  $zipfile.MaxOutputSegmentSize = $MaxOutputSegmentSize
+  if ($PSBoundParameters.ContainsKey('MaxOutputSegmentSize')) {
+    $zipfile.MaxOutputSegmentSize = $MaxOutputSegmentSize
+  }
   if (Test-Path $AbsSourcePath -pathType container) {
     $zipfile.AddDirectory($AbsSourcePath, $ZipExtractBasePath ) | Write-Verbose
   } else {
