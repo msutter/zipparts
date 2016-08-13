@@ -76,6 +76,7 @@ function ConvertTo-ZipParts
   [System.Reflection.Assembly]::UnsafeLoadFrom($DotNetZipDllPath) | Write-Verbose
   $zipfile = new-object Ionic.Zip.ZipFile
   $zipfile.UseZip64WhenSaving = [Ionic.Zip.Zip64Option]::Always
+  $zipfile.ParallelDeflateThreshold = -1
   if ($PSBoundParameters.ContainsKey('MaxOutputSegmentSize')) {
     $zipfile.MaxOutputSegmentSize = $MaxOutputSegmentSize
   }
